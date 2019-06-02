@@ -13,7 +13,7 @@ This happens a lot in the Premedia  / Studio Imaging industries and for some rea
 The project is available **SOON** in the Maven Central Repository. For your Gradle build:
 
 ```
-	compile 'org.keeber:simple-image:+'
+	compile 'org.keeber:simple-img:+'
 ```
 
 # Quickstart
