@@ -65,7 +65,7 @@ public class XMPSerializerRDF
 	/** */
 	private static final String RDF_EMPTY_STRUCT  = "<rdf:Description/>";
 	/** a set of all rdf attribute qualifier */
-	static final Set RDF_ATTR_QUALIFIER = new HashSet(Arrays.asList(new String[] {
+	static final Set<String> RDF_ATTR_QUALIFIER = new HashSet<String>(Arrays.asList(new String[] {
 			XMPConst.XML_LANG, "rdf:resource", "rdf:ID", "rdf:bagID", "rdf:nodeID" }));
 	
 	/** the metadata object to be serialized. */ 
@@ -325,7 +325,7 @@ public class XMPSerializerRDF
 		{
 			startOuterRDFDescription(xmp.getRoot(), level);
 
-			for (Iterator it = xmp.getRoot().iterateChildren(); it.hasNext(); )
+			for (Iterator<?> it = xmp.getRoot().iterateChildren(); it.hasNext(); )
 			{
 				XMPNode currSchema = (XMPNode) it.next();
 				serializeCanonicalRDFSchema(currSchema, level);
@@ -373,11 +373,11 @@ public class XMPSerializerRDF
 		writeTreeName();
 		
 		// Write all necessary xmlns attributes.
-		Set usedPrefixes = new HashSet();
+		Set<String> usedPrefixes = new HashSet<String>();
 		usedPrefixes.add("xml");
 		usedPrefixes.add("rdf");
 
-		for (Iterator it = xmp.getRoot().iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = xmp.getRoot().iterateChildren(); it.hasNext();)
 		{
 			XMPNode schema = (XMPNode) it.next();
 			declareUsedNamespaces(schema, usedPrefixes, level + 3);
@@ -385,7 +385,7 @@ public class XMPSerializerRDF
 	
 		// Write the top level "attrProps" and close the rdf:Description start tag.
 		boolean allAreAttrs = true;
-		for (Iterator it = xmp.getRoot().iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = xmp.getRoot().iterateChildren(); it.hasNext();)
 		{
 			XMPNode schema = (XMPNode) it.next();
 			allAreAttrs &= serializeCompactRDFAttrProps (schema, level + 2);
@@ -404,7 +404,7 @@ public class XMPSerializerRDF
 		}
 	
 		// Write the remaining properties for each schema.
-		for (Iterator it = xmp.getRoot().iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = xmp.getRoot().iterateChildren(); it.hasNext();)
 		{
 			XMPNode schema = (XMPNode) it.next();
 			serializeCompactRDFElementProps (schema, level + 2);
@@ -431,7 +431,7 @@ public class XMPSerializerRDF
 	{
 		boolean allAreAttrs = true;
 	
-		for (Iterator it = parentNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = parentNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode prop = (XMPNode) it.next();
 		
@@ -505,7 +505,7 @@ public class XMPSerializerRDF
 	private void serializeCompactRDFElementProps(XMPNode parentNode, int indent)
 			throws IOException, XMPException
 	{
-		for (Iterator it = parentNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = parentNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode node = (XMPNode) it.next();
 			if (canBeRDFAttrProp (node))
@@ -532,7 +532,7 @@ public class XMPSerializerRDF
 			boolean hasGeneralQualifiers = false;
 			boolean hasRDFResourceQual   = false;
 	
-			for (Iterator iq = 	node.iterateQualifier(); iq.hasNext();)
+			for (Iterator<?> iq = 	node.iterateQualifier(); iq.hasNext();)
 			{
 				XMPNode qualifier = (XMPNode) iq.next();
 				if (!RDF_ATTR_QUALIFIER.contains(qualifier.getName()))
@@ -677,7 +677,7 @@ public class XMPSerializerRDF
 		boolean hasElemFields = false;
 		boolean emitEndTag = true;
 		
-		for (Iterator ic = node.iterateChildren(); ic.hasNext(); )
+		for (Iterator<?> ic = node.iterateChildren(); ic.hasNext(); )
 		{
 			XMPNode field = (XMPNode) ic.next();
 			if (canBeRDFAttrProp(field))
@@ -771,7 +771,7 @@ public class XMPSerializerRDF
 
 		serializeCanonicalRDFProperty(node, false, true, indent + 1);
 
-		for (Iterator iq = 	node.iterateQualifier(); iq.hasNext();)
+		for (Iterator<?> iq = 	node.iterateQualifier(); iq.hasNext();)
 		{
 			XMPNode qualifier = (XMPNode) iq.next();
 			serializeCanonicalRDFProperty(qualifier, false, false, indent + 1);
@@ -811,7 +811,7 @@ public class XMPSerializerRDF
 	private void serializeCanonicalRDFSchema(XMPNode schemaNode, int level) throws IOException, XMPException
 	{
 		// Write each of the schema's actual properties.
-		for (Iterator it = schemaNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = schemaNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode propNode = (XMPNode) it.next();
 			serializeCanonicalRDFProperty(propNode, options.getUseCanonicalFormat(), false, level + 2);
@@ -827,7 +827,7 @@ public class XMPSerializerRDF
 	 * @param indent the current indent level
 	 * @throws IOException Forwards all writer exceptions.
 	 */
-	private void declareUsedNamespaces(XMPNode node, Set usedPrefixes, int indent)
+	private void declareUsedNamespaces(XMPNode node, Set<String> usedPrefixes, int indent)
 			throws IOException
 	{
 		if (node.getOptions().isSchemaNode())
@@ -838,20 +838,20 @@ public class XMPSerializerRDF
 		}
 		else if (node.getOptions().isStruct())
 		{
-			for (Iterator it = node.iterateChildren(); it.hasNext();)
+			for (Iterator<?> it = node.iterateChildren(); it.hasNext();)
 			{
 				XMPNode field = (XMPNode) it.next();
 				declareNamespace(field.getName(), null, usedPrefixes, indent);
 			}
 		}
 	
-		for (Iterator it = node.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = node.iterateChildren(); it.hasNext();)
 		{
 			XMPNode child = (XMPNode) it.next();
 			declareUsedNamespaces(child, usedPrefixes, indent);
 		}
 
-		for (Iterator it = node.iterateQualifier(); it.hasNext();)
+		for (Iterator<?> it = node.iterateQualifier(); it.hasNext();)
 		{
 			XMPNode qualifier = (XMPNode) it.next();
 			declareNamespace(qualifier.getName(), null, usedPrefixes, indent);
@@ -868,7 +868,7 @@ public class XMPSerializerRDF
 	 * @param indent the current indent level
 	 * @throws IOException Forwards all writer exceptions.
 	 */
-	private void declareNamespace(String prefix, String namespace, Set usedPrefixes, int indent)
+	private void declareNamespace(String prefix, String namespace, Set<String> usedPrefixes, int indent)
 			throws IOException
 	{
 		if (namespace == null)
@@ -915,7 +915,7 @@ public class XMPSerializerRDF
 		write(RDF_SCHEMA_START);
 		writeTreeName();
 		
-		Set usedPrefixes = new HashSet();
+		Set<String> usedPrefixes = new HashSet<String>();
 		usedPrefixes.add("xml");
 		usedPrefixes.add("rdf");
 
@@ -1013,7 +1013,7 @@ public class XMPSerializerRDF
 		boolean hasGeneralQualifiers = false;
 		boolean hasRDFResourceQual   = false;
 		
-		for (Iterator it = node.iterateQualifier(); it.hasNext();)
+		for (Iterator<?> it = node.iterateQualifier(); it.hasNext();)
 		{
 			XMPNode qualifier = (XMPNode) it.next();
 			if (!RDF_ATTR_QUALIFIER.contains(qualifier.getName()))
@@ -1069,7 +1069,7 @@ public class XMPSerializerRDF
 			
 			serializeCanonicalRDFProperty(node, useCanonicalRDF, true, indent + 1);
 
-			for (Iterator it = node.iterateQualifier(); it.hasNext();)
+			for (Iterator<?> it = node.iterateQualifier(); it.hasNext();)
 			{
 				XMPNode qualifier = (XMPNode) it.next();
 				if (!RDF_ATTR_QUALIFIER.contains(qualifier.getName()))
@@ -1125,7 +1125,7 @@ public class XMPSerializerRDF
 				{
 					XMPNodeUtils.normalizeLangArray(node);
 				}
-				for (Iterator it = node.iterateChildren(); it.hasNext();)
+				for (Iterator<?> it = node.iterateChildren(); it.hasNext();)
 				{
 					XMPNode child = (XMPNode) it.next();
 					serializeCanonicalRDFProperty(child, useCanonicalRDF, false,  indent + 2);
@@ -1174,7 +1174,7 @@ public class XMPSerializerRDF
 					}	
 					writeNewline();
 					
-					for (Iterator it = node.iterateChildren(); it.hasNext();)
+					for (Iterator<?> it = node.iterateChildren(); it.hasNext();)
 					{
 						XMPNode child = (XMPNode) it.next();
 						serializeCanonicalRDFProperty(child, useCanonicalRDF, false, indent + 1);
@@ -1193,7 +1193,7 @@ public class XMPSerializerRDF
 			{
 				// This is a struct with an rdf:resource attribute, use the
 				// "empty property element" form.
-				for (Iterator it = node.iterateChildren(); it.hasNext();)
+				for (Iterator<?> it = node.iterateChildren(); it.hasNext();)
 				{
 					XMPNode child = (XMPNode) it.next();
 					if (!canBeRDFAttrProp(child))

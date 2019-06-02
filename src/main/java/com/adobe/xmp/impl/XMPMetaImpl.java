@@ -478,7 +478,7 @@ public class XMPMetaImpl implements XMPMeta, XMPConst
 		boolean haveXDefault = false;
 		XMPNode xdItem = null;
 
-		for (Iterator it = arrayNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = arrayNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode currItem = (XMPNode) it.next();
 			if (!currItem.hasQualifier()
@@ -542,7 +542,7 @@ public class XMPMetaImpl implements XMPMeta, XMPConst
 			{
 				// Update all items whose values match the old x-default value.
 				assert  haveXDefault  &&  xdItem == itemNode;
-				for (Iterator it = arrayNode.iterateChildren(); it.hasNext();)
+				for (Iterator<?> it = arrayNode.iterateChildren(); it.hasNext();)
 				{
 					XMPNode currItem = (XMPNode) it.next();
 					if (currItem == xdItem

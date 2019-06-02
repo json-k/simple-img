@@ -426,8 +426,6 @@ public class Image {
   private class EditParams {
     private int canvasWidth, canvasHeight, offsetX, offsetY, imageWidth, imageHeight;
     private boolean flatten = false;
-    private BufferedImage raster;
-
 
     public EditParams longestSide(int length) {
       offsetX = 0;

@@ -33,7 +33,7 @@ import com.adobe.xmp.properties.XMPAliasInfo;
 public class XMPNormalizer
 {
 	/** caches the correct dc-property array forms */
-	private static Map dcArrayForms;
+	private static Map<String, PropertyOptions> dcArrayForms;
 	/** init char tables */
 	static
 	{
@@ -131,7 +131,7 @@ public class XMPNormalizer
 		XMPNodeUtils.findSchemaNode(xmp.getRoot(), XMPConst.NS_DC, true);
 		
 		// Do the special case fixes within each schema.
-		for (Iterator it = xmp.getRoot().iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = xmp.getRoot().iterateChildren(); it.hasNext();)
 		{
 			XMPNode currSchema = (XMPNode) it.next();
 			if (XMPConst.NS_DC.equals(currSchema.getName()))
@@ -251,7 +251,7 @@ public class XMPNormalizer
 		// fix options
 		arrayNode.getOptions().setArrayOrdered(true).setArrayAlternate(true).setArrayAltText(true);
 		
-		for (Iterator it = arrayNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = arrayNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode currChild = (XMPNode) it.next();
 			if (currChild.getOptions().isCompositeProperty())
@@ -298,7 +298,7 @@ public class XMPNormalizer
 		
 		boolean strictAliasing = options.getStrictAliasing();
 
-		for (Iterator schemaIt = tree.getUnmodifiableChildren().iterator(); schemaIt.hasNext();)
+		for (Iterator<?> schemaIt = tree.getUnmodifiableChildren().iterator(); schemaIt.hasNext();)
 		{
 			XMPNode currSchema = (XMPNode) schemaIt.next();
 			if (!currSchema.getHasAliases())
@@ -306,7 +306,7 @@ public class XMPNormalizer
 				continue;
 			}
 			
-			for (Iterator propertyIt = currSchema.iterateChildren(); propertyIt.hasNext();)
+			for (Iterator<?> propertyIt = currSchema.iterateChildren(); propertyIt.hasNext();)
 			{
 				XMPNode currProp = (XMPNode) propertyIt.next();
 				
@@ -414,7 +414,7 @@ public class XMPNormalizer
 	 * @param baseArray the base array for the array item 
 	 * @throws XMPException Forwards XMP errors
 	 */
-	private static void transplantArrayItemAlias(Iterator propertyIt, XMPNode childNode,
+	private static void transplantArrayItemAlias(Iterator<?> propertyIt, XMPNode childNode,
 			XMPNode baseArray) throws XMPException
 	{
 		if (baseArray.getOptions().isArrayAltText())
@@ -497,7 +497,7 @@ public class XMPNormalizer
 		// Delete empty schema nodes. Do this last, other cleanup can make empty
 		// schema.
 	
-		for (Iterator it = tree.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = tree.iterateChildren(); it.hasNext();)
 		{
 			XMPNode schema = (XMPNode) it.next();
 			if (!schema.hasChildren())
@@ -538,7 +538,7 @@ public class XMPNormalizer
 				XMPError.BADXMP);
 		}
 		
-		for (Iterator an = aliasNode.iterateChildren(), 
+		for (Iterator<?> an = aliasNode.iterateChildren(), 
 					  bn = baseNode.iterateChildren();
 			 an.hasNext() && bn.hasNext();)
 		{
@@ -548,7 +548,7 @@ public class XMPNormalizer
 		}
 	
 		
-		for (Iterator an = aliasNode.iterateQualifier(), 
+		for (Iterator<?> an = aliasNode.iterateQualifier(), 
 					  bn = baseNode.iterateQualifier();
 			 an.hasNext() && bn.hasNext();)
 		{
@@ -663,7 +663,7 @@ public class XMPNormalizer
 	 */
 	private static void initDCArrays()
 	{
-		dcArrayForms = new HashMap(); 
+		dcArrayForms = new HashMap<String, PropertyOptions>(); 
 		
 		// Properties supposed to be a "Bag".
 		PropertyOptions bagForm = new PropertyOptions();

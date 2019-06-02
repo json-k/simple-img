@@ -65,7 +65,7 @@ import java.util.Iterator;
  * 
  * @since 25.01.2006
  */
-public interface XMPIterator extends Iterator
+public interface XMPIterator extends Iterator<Object>
 {
 	/**
 	 * Skip the subtree below the current node when <code>next()</code> is

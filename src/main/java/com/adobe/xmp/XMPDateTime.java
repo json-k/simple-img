@@ -32,7 +32,7 @@ import java.util.TimeZone;
  * without a time has zeros for all the time fields. A time without a date has zeros for all date
  * fields (year, month, and day).
  */
-public interface XMPDateTime extends Comparable
+public interface XMPDateTime extends Comparable<Object>
 {
 	/** @return Returns the year, can be negative. */
 	int getYear();

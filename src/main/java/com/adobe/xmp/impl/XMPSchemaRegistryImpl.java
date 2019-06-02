@@ -35,14 +35,14 @@ import com.adobe.xmp.properties.XMPAliasInfo;
 public final class XMPSchemaRegistryImpl implements XMPSchemaRegistry, XMPConst
 {
 	/** a map from a namespace URI to its registered prefix */
-	private Map namespaceToPrefixMap = new HashMap();
+	private Map<String, String> namespaceToPrefixMap = new HashMap<String, String>();
 
 	/** a map from a prefix to the associated namespace URI */
-	private Map prefixToNamespaceMap = new HashMap();
+	private Map<String, String> prefixToNamespaceMap = new HashMap<String, String>();
 
 	/** a map of all registered aliases. 
 	 *  The map is a relationship from a qname to an <code>XMPAliasInfo</code>-object. */
-	private Map aliasMap = new HashMap();
+	private Map<String, XMPAliasInfo> aliasMap = new HashMap<String, XMPAliasInfo>();
 	/** The pattern that must not be contained in simple properties */
 	private Pattern p = Pattern.compile("[/*?\\[\\]]");
 
@@ -159,18 +159,18 @@ public final class XMPSchemaRegistryImpl implements XMPSchemaRegistry, XMPConst
 	/**
 	 * @see XMPSchemaRegistry#getNamespaces()
 	 */
-	public synchronized Map getNamespaces()
+	public synchronized Map<String, String> getNamespaces()
 	{
-		return Collections.unmodifiableMap(new TreeMap(namespaceToPrefixMap));
+		return Collections.unmodifiableMap(new TreeMap<String, String>(namespaceToPrefixMap));
 	}
 	
 	
 	/**
 	 * @see XMPSchemaRegistry#getPrefixes()
 	 */
-	public synchronized Map getPrefixes()
+	public synchronized Map<String, String> getPrefixes()
 	{
-		return Collections.unmodifiableMap(new TreeMap(prefixToNamespaceMap));
+		return Collections.unmodifiableMap(new TreeMap<String, String>(prefixToNamespaceMap));
 	}
 	
 	
@@ -286,10 +286,10 @@ public final class XMPSchemaRegistryImpl implements XMPSchemaRegistry, XMPConst
 	public synchronized XMPAliasInfo[] findAliases(String aliasNS)
 	{
 		String prefix = getNamespacePrefix(aliasNS);
-		List result = new ArrayList(); 
+		List<XMPAliasInfo> result = new ArrayList<XMPAliasInfo>(); 
 		if (prefix != null)
 		{
-			for (Iterator it = aliasMap.keySet().iterator(); it.hasNext();)
+			for (Iterator<String> it = aliasMap.keySet().iterator(); it.hasNext();)
 			{
 				String qname = (String) it.next();
 				if (qname.startsWith(prefix))
@@ -434,9 +434,9 @@ public final class XMPSchemaRegistryImpl implements XMPSchemaRegistry, XMPConst
 	/**
 	 * @see XMPSchemaRegistry#getAliases()
 	 */
-	public synchronized Map getAliases()
+	public synchronized Map<String, XMPAliasInfo> getAliases()
 	{
-		return Collections.unmodifiableMap(new TreeMap(aliasMap));
+		return Collections.unmodifiableMap(new TreeMap<String, XMPAliasInfo>(aliasMap));
 	}
 	
 	

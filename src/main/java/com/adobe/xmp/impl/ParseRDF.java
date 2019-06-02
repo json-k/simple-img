@@ -369,7 +369,7 @@ public class ParseRDF implements XMPError, XMPConst
 		
 		// remove the namespace-definitions from the list
 		NamedNodeMap attributes = xmlNode.getAttributes();
-		List nsAttrs = null;
+		List<String> nsAttrs = null;
 		for (int i = 0; i < attributes.getLength(); i++)
 		{
 			Node attribute = attributes.item(i);
@@ -378,14 +378,14 @@ public class ParseRDF implements XMPError, XMPConst
 			{
 				if (nsAttrs == null)
 				{
-					nsAttrs = new ArrayList();
+					nsAttrs = new ArrayList<String>();
 				}
 				nsAttrs.add(attribute.getNodeName());
 			}
 		}
 		if (nsAttrs != null)
 		{
-			for (Iterator it = nsAttrs.iterator(); it.hasNext();)
+			for (Iterator<String> it = nsAttrs.iterator(); it.hasNext();)
 			{
 				String ns = (String) it.next();
 				attributes.removeNamedItem(ns);
@@ -1163,7 +1163,7 @@ public class ParseRDF implements XMPError, XMPConst
 		xmpParent.setValue(valueNode.getValue());
 		
 		xmpParent.removeChildren();
-		for (Iterator it = valueNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = valueNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode child = (XMPNode) it.next();
 			xmpParent.addChild(child);

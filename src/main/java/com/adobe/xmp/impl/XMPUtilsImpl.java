@@ -123,7 +123,7 @@ public class XMPUtilsImpl implements XMPConst
 
 		StringBuffer catinatedString = new StringBuffer();
 
-		for (Iterator it = arrayNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = arrayNode.iterateChildren(); it.hasNext();)
 		{
 			currItem = (XMPNode) it.next();
 			if (currItem.getOptions().isCompositeProperty())
@@ -490,7 +490,7 @@ public class XMPUtilsImpl implements XMPConst
 			// we don't have to be
 			// concerned with aliases, they are handled implicitly from the
 			// actual properties.
-			for (Iterator it = xmpImpl.getRoot().iterateChildren(); it.hasNext();)
+			for (Iterator<?> it = xmpImpl.getRoot().iterateChildren(); it.hasNext();)
 			{
 				XMPNode schema = (XMPNode) it.next();
 				if (removeSchemaChildren(schema, doAllProperties))
@@ -521,7 +521,7 @@ public class XMPUtilsImpl implements XMPConst
 		XMPMetaImpl src = (XMPMetaImpl) source;
 		XMPMetaImpl dest = (XMPMetaImpl) destination;
 
-		for (Iterator it = src.getRoot().iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = src.getRoot().iterateChildren(); it.hasNext();)
 		{
 			XMPNode sourceSchema = (XMPNode) it.next();
 			
@@ -538,7 +538,7 @@ public class XMPUtilsImpl implements XMPConst
 			}
 
 			// Process the source schema's children.			
-			for (Iterator ic = sourceSchema.iterateChildren(); ic.hasNext();)
+			for (Iterator<?> ic = sourceSchema.iterateChildren(); ic.hasNext();)
 			{
 				XMPNode sourceProp = (XMPNode) ic.next();
 				if (doAllProperties
@@ -571,7 +571,7 @@ public class XMPUtilsImpl implements XMPConst
 	 */
 	private static boolean removeSchemaChildren(XMPNode schemaNode, boolean doAllProperties)
 	{
-		for (Iterator it = schemaNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = schemaNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode currProp = (XMPNode) it.next();
 			if (doAllProperties
@@ -644,7 +644,7 @@ public class XMPUtilsImpl implements XMPConst
 				// To merge a struct process the fields recursively. E.g. add simple missing fields.
 				// The recursive call to AppendSubtree will handle deletion for fields with empty 
 				// values.
-				for (Iterator it = sourceNode.iterateChildren(); it.hasNext();)
+				for (Iterator<?> it = sourceNode.iterateChildren(); it.hasNext();)
 				{
 					XMPNode sourceField = (XMPNode) it.next();
 					appendSubtree(destXMP, sourceField, destNode, 
@@ -660,7 +660,7 @@ public class XMPUtilsImpl implements XMPConst
 				// Merge AltText arrays by the "xml:lang" qualifiers. Make sure x-default is first. 
 				// Make a special check for deletion of empty values. Meaningful in AltText arrays 
 				// because the "xml:lang" qualifier provides unambiguous source/dest correspondence.
-				for (Iterator it = sourceNode.iterateChildren(); it.hasNext();)
+				for (Iterator<?> it = sourceNode.iterateChildren(); it.hasNext();)
 				{
 					XMPNode sourceItem = (XMPNode) it.next();
 					if (!sourceItem.hasQualifier()
@@ -710,12 +710,12 @@ public class XMPUtilsImpl implements XMPConst
 				// items with empty values do not cause deletion, that conflicts horribly with 
 				// merging.
 
-				for (Iterator is = sourceNode.iterateChildren(); is.hasNext();)
+				for (Iterator<?> is = sourceNode.iterateChildren(); is.hasNext();)
 				{
 					XMPNode sourceItem = (XMPNode) is.next();
 
 					boolean match = false;
-					for (Iterator id = destNode.iterateChildren(); id.hasNext();)
+					for (Iterator<?> id = destNode.iterateChildren(); id.hasNext();)
 					{
 						XMPNode destItem = (XMPNode) id.next();
 						if (itemValuesMatch(sourceItem, destItem))
@@ -778,7 +778,7 @@ public class XMPUtilsImpl implements XMPConst
 				return false;
 			}
 
-			for (Iterator it = leftNode.iterateChildren(); it.hasNext();)
+			for (Iterator<?> it = leftNode.iterateChildren(); it.hasNext();)
 			{
 				XMPNode leftField = (XMPNode) it.next();
 				XMPNode rightField = XMPNodeUtils.findChildNode(rightNode, leftField.getName(),
@@ -798,12 +798,12 @@ public class XMPUtilsImpl implements XMPConst
 
 			assert leftForm.isArray();
 
-			for (Iterator il = leftNode.iterateChildren(); il.hasNext();)
+			for (Iterator<?> il = leftNode.iterateChildren(); il.hasNext();)
 			{
 				XMPNode leftItem = (XMPNode) il.next();
 
 				boolean match = false;
-				for (Iterator ir = rightNode.iterateChildren(); ir.hasNext();)
+				for (Iterator<?> ir = rightNode.iterateChildren(); ir.hasNext();)
 				{
 					XMPNode rightItem = (XMPNode) ir.next();
 					if (itemValuesMatch(leftItem, rightItem))

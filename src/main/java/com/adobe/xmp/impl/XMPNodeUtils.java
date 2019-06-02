@@ -675,7 +675,7 @@ public class XMPNodeUtils implements XMPConst
 			{
 				XMPNode currItem = arrayNode.getChild(index);
 		
-				for (Iterator it = currItem.iterateQualifier(); it.hasNext();)
+				for (Iterator<?> it = currItem.iterateQualifier(); it.hasNext();)
 				{
 					XMPNode qualifier = (XMPNode) it.next();
 					if (qualName.equals(qualifier.getName())  &&
@@ -747,7 +747,7 @@ public class XMPNodeUtils implements XMPConst
 		if (arrayNode.getOptions().isArrayAlternate() && arrayNode.hasChildren())
 		{
 			boolean isAltText = false;
-			for (Iterator it = arrayNode.iterateChildren(); it.hasNext();)
+			for (Iterator<?> it = arrayNode.iterateChildren(); it.hasNext();)
 			{
 				XMPNode child = (XMPNode) it.next();
 				if (child.getOptions().getHasLanguage())
@@ -830,7 +830,7 @@ public class XMPNodeUtils implements XMPConst
 		XMPNode xDefault = null;
 	
 		// Look for the first partial match with the generic language.
-		for (Iterator it = arrayNode.iterateChildren(); it.hasNext();)
+		for (Iterator<?> it = arrayNode.iterateChildren(); it.hasNext();)
 		{
 			XMPNode currItem = (XMPNode) it.next();
 	

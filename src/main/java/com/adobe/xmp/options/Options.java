@@ -26,7 +26,7 @@ public abstract class Options
 	/** the internal int containing all options */
 	private int options = 0;
 	/** a map containing the bit names */
-	private Map optionNames = null;
+	private Map<Integer, String> optionNames = null;
 
 
 	/**
@@ -255,7 +255,7 @@ public abstract class Options
 	 */
 	private String getOptionName(int option)
 	{
-		Map optionsNames = procureOptionNames();
+		Map<Integer, String> optionsNames = procureOptionNames();
 		
 		Integer key = new Integer(option);
 		String result = (String) optionsNames.get(key);
@@ -279,11 +279,11 @@ public abstract class Options
 	/**
 	 * @return Returns the optionNames map and creates it if required.
 	 */
-	private Map procureOptionNames()
+	private Map<Integer, String> procureOptionNames()
 	{
 		if (optionNames == null)
 		{	
-			optionNames = new HashMap();
+			optionNames = new HashMap<Integer, String>();
 		}
 		return optionNames;
 	}

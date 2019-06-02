@@ -44,7 +44,7 @@ public class XMPPath
 
 	
 	/** stores the segments of an XMPPath */
-	private List segments = new ArrayList(5);
+	private List<XMPPathSegment> segments = new ArrayList<XMPPathSegment>(5);
 	
 	
 	/**

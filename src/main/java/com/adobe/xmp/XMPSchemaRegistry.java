@@ -99,14 +99,14 @@ public interface XMPSchemaRegistry
 	 * @return Returns the registered prefix/namespace-pairs as map, where the keys are the
 	 *         namespaces and the values are the prefixes.
 	 */
-	Map getNamespaces();
+	Map<?, ?> getNamespaces();
 
 	
 	/**
 	 * @return Returns the registered namespace/prefix-pairs as map, where the keys are the
 	 *         prefixes and the values are the namespaces.
 	 */
-	Map getPrefixes();
+	Map<?, ?> getPrefixes();
 	
 	
 	/**
@@ -170,7 +170,7 @@ public interface XMPSchemaRegistry
 	 * @return Returns the registered aliases as map, where the key is the "qname" (prefix and name)
 	 * and the value an <code>XMPAliasInfo</code>-object.
 	 */
-	Map getAliases();
+	Map<?, ?> getAliases();
 
 
 }
