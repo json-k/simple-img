@@ -2,6 +2,7 @@ package org.keeber.imaging;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.color.ICC_Profile;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.util.Arrays;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -46,11 +48,27 @@ public class Image {
   private XMPMeta xmp;
   private int res = 0;
   private Color background = Color.WHITE;
+  private ICC_Profile profile = null;
 
   private Image(BufferedImage raster, IIOMetadata metadata, Type type) {
     this.raster = raster;
     this.type = type;
     init(metadata);
+  }
+
+
+  public ICC_Profile getProfile() {
+    return profile;
+  }
+
+  public Image setProfile(ICC_Profile profile) {
+    this.profile = profile;
+    return this;
+  }
+
+  public Image setProfile(byte[] profile) {
+    this.profile = ICC_Profile.getInstance(profile);
+    return this;
   }
 
   /**
@@ -188,6 +206,7 @@ public class Image {
   private static class Constants {
     public static Color TRANSPARENT = new Color(0x00ffffff, true);
     public static final String XMP_PACKET_START = "<?xpacket begin";
+    public static final int ICC_HEADER_SIZE = 14;
     private static int XMP_HEADER_SIZE = 29;
     private static SerializeOptions SERIALIZE_OPTIONS = new SerializeOptions().setUseCompactFormat(true);
     private static BaselineTIFFTagSet BASE = BaselineTIFFTagSet.getInstance();
@@ -208,6 +227,11 @@ public class Image {
           byte[] b = (byte[]) ((IIOMetadataNode) nodes.item(i)).getUserObject();
           xmpData = new String(b, Constants.XMP_HEADER_SIZE, b.length - Constants.XMP_HEADER_SIZE);
         }
+        if (((IIOMetadataNode) nodes.item(i)).getAttribute("MarkerTag").matches("APP2|226")) {
+          byte[] b = (byte[]) ((IIOMetadataNode) nodes.item(i)).getUserObject();
+          b = Arrays.copyOfRange(b, Constants.ICC_HEADER_SIZE, b.length);
+          profile = ICC_Profile.getInstance(b);
+        }
       }
     }
     if (type == Image.Type.PNG) {
@@ -218,19 +242,39 @@ public class Image {
           xmpData = ((IIOMetadataNode) nodes.item(i)).getAttribute("text");
         }
       }
+      nodes = root.getElementsByTagName("pHYs");
+      if (nodes.getLength() == 1) {
+        IIOMetadataNode r = (IIOMetadataNode) nodes.item(0);
+        if (r.getAttribute("unitSpecifier").equals("meter")) {
+          res = Math.round(Integer.parseInt(r.getAttribute("pixelsPerUnitXAxis")) * 0.0254f);
+        }
+      }
+      if (res == 0) {
+        root = (IIOMetadataNode) metadata.getAsTree("javax_imageio_1.0");
+        nodes = root.getElementsByTagName("HorizontalPixelSize");
+        if (nodes.getLength() == 1) {
+          IIOMetadataNode r = (IIOMetadataNode) nodes.item(0);
+          res = (int) Math.round(25.4 * Float.parseFloat(r.getAttribute("value")));
+        }
+      }
     }
-    if (type == Image.Type.TIF) {
+    if (type == Image.Type.TIF || type == Image.Type.JPG) {
       try {
         TIFFDirectory t = TIFFDirectory.createFromMetadata(metadata);
         if (t.containsTIFFField(700)) {
           xmpData = new String(t.getTIFFField(700).getAsBytes());
         }
+        // Resolution
         if (t.containsTIFFField(BaselineTIFFTagSet.TAG_X_RESOLUTION)) {
           long[] r = t.getTIFFField(BaselineTIFFTagSet.TAG_X_RESOLUTION).getAsRational(0);
           res = Math.floorDiv((int) r[0], (int) r[1]);
           if (t.containsTIFFField(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT) && t.getTIFFField(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT).getAsChars()[0] == 3) {
             res = Math.round(res * 2.54f);
           }
+        }
+        // ICC Profile
+        if (t.containsTIFFField(BaselineTIFFTagSet.TAG_ICC_PROFILE)) {
+          profile = ICC_Profile.getInstance(t.getTIFFField(BaselineTIFFTagSet.TAG_ICC_PROFILE).getAsBytes());
         }
       } catch (IIOInvalidTreeException e) {
 
@@ -318,23 +362,38 @@ public class Image {
       ImageWriteParam p = writer.getDefaultWriteParam();
       IIOMetadata m = writer.getDefaultImageMetadata(new ImageTypeSpecifier(oRaster), null);
       // Serialize the XMP
-      byte[] xmpBytes;
+      byte[] xmpBytes, profileBytes;
       try {
         xmpBytes = XMPMetaFactory.serializeToBuffer(oXmp, Constants.SERIALIZE_OPTIONS);
       } catch (XMPException e) {
         throw new IOException("Failed to serialize XMP[" + e.getLocalizedMessage() + "].", e);
       }
+      profileBytes = profile == null ? new byte[0] : profile.getData();
       if (oType == Image.Type.JPG) {
         IIOMetadataNode root = (IIOMetadataNode) m.getAsTree(oType.id);
         IIOMetadataNode markerSequence = (IIOMetadataNode) root.getElementsByTagName("markerSequence").item(0);
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        bos.write("http://ns.adobe.com/xap/1.0/\0".getBytes());
-        bos.write(xmpBytes);
-        IIOMetadataNode exif = new IIOMetadataNode("unknown");
-        exif.setAttribute("MarkerTag", String.valueOf(0xE1));
-        exif.setUserObject(bos.toByteArray());
-        markerSequence.appendChild(exif);
+        // XMP
+        {
+          ByteArrayOutputStream bos = new ByteArrayOutputStream();
+          bos.write("http://ns.adobe.com/xap/1.0/\0".getBytes());
+          bos.write(xmpBytes);
+          IIOMetadataNode exif = new IIOMetadataNode("unknown");
+          exif.setAttribute("MarkerTag", String.valueOf(0xE1));
+          exif.setUserObject(bos.toByteArray());
+          markerSequence.appendChild(exif);
+        }
+        // ICC
+        if (profileBytes.length > 0) {
+          ByteArrayOutputStream bos = new ByteArrayOutputStream();
+          bos.write("ICC_PROFILE\0".getBytes());
+          bos.write("\1\1".getBytes()); // Chunk count
+          bos.write(profileBytes);
+          IIOMetadataNode icc = new IIOMetadataNode("unknown");
+          icc.setAttribute("MarkerTag", String.valueOf(0xE2));
+          icc.setUserObject(bos.toByteArray());
+          markerSequence.appendChild(icc);
+        }
+        //
         {
           NodeList ch = root.getElementsByTagName("JPEGvariety");
           IIOMetadataNode jpegVariety;
@@ -368,6 +427,11 @@ public class Image {
         t.addTIFFField(new TIFFField(Constants.BASE.getTag(BaselineTIFFTagSet.TAG_X_RESOLUTION), TIFFTag.TIFF_RATIONAL, 1, new long[][] {{res, 1}}));
         t.addTIFFField(new TIFFField(Constants.BASE.getTag(BaselineTIFFTagSet.TAG_Y_RESOLUTION), TIFFTag.TIFF_RATIONAL, 1, new long[][] {{res, 1}}));
         t.addTIFFField(new TIFFField(Constants.BASE.getTag(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT), TIFFTag.TIFF_SHORT, 1, new char[] {2}));
+        // ICC PROFILE
+        if (profileBytes.length > 0) {
+          t.addTIFFField(new TIFFField(Constants.BASE.getTag(BaselineTIFFTagSet.TAG_ICC_PROFILE), TIFFTag.TIFF_BYTE, profileBytes.length, profileBytes));
+        }
+        //
         m = t.getAsMetadata();
         // PARAMS
         TIFFImageWriteParam tp = (TIFFImageWriteParam) p;
@@ -391,13 +455,21 @@ public class Image {
         // DPI (We hope).
         root = (IIOMetadataNode) m.getAsTree("javax_imageio_1.0");
         IIOMetadataNode horiz = new IIOMetadataNode("HorizontalPixelSize");
-        horiz.setAttribute("value", Double.toString(39.370079f * res));
+        horiz.setAttribute("value", Double.toString(res / 25.4));
         IIOMetadataNode vert = new IIOMetadataNode("VerticalPixelSize");
-        vert.setAttribute("value", Double.toString(39.370079f * res));
+        vert.setAttribute("value", Double.toString(res / 25.4));
         IIOMetadataNode dim = new IIOMetadataNode("Dimension");
         dim.appendChild(horiz);
         dim.appendChild(vert);
         root.appendChild(dim);
+        // ICC Profile
+        root = (IIOMetadataNode) m.getAsTree("javax_imageio_1.0");
+        IIOMetadataNode iccp = new IIOMetadataNode("iCCP");
+        iccp.setUserObject(profileBytes);
+
+        root.appendChild(iccp);
+
+
         m.mergeTree("javax_imageio_1.0", root);
       }
       File tmp = File.createTempFile("JImage", "." + oType.getExtention());

@@ -54,8 +54,7 @@ img.normalize(false).edit.place(500, 500);
 ```
 
 # TO-DO
-
- 1. Figure out a prettier way of chaining and doing the edits.
- 2. Support for ICC color profiles.
+ 1. Resolution (reading) for JPEG files, ICC profile (reading) for PNG.
+ 2. Figure out a prettier way of chaining and doing the edits.
  3. Support for reading and writing CMYK images.
  
