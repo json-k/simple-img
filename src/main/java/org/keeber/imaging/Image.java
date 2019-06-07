@@ -537,6 +537,12 @@ public class Image {
       return new Image(reader.read(0), reader.getImageMetadata(0), type);
     }
 
+//    public static XMPMeta xmpOnly(InputStream is, Image.Type type) throws IOException {
+//      ImageReader reader = ImageIO.getImageReadersByFormatName(type.fm).next();
+//      reader.setInput(ImageIO.createImageInputStream(is), true, false);
+//      return new Image(null, reader.getImageMetadata(0), type).getXMP();
+//    }
+
   }
 
   public static class metadata {
@@ -573,7 +579,7 @@ public class Image {
      * This is a delegate for the {@see XMPMetaFactory#getSchemaRegistry()#registerNS(String,
      * String)} method to allow access to add namespaces.
      * 
-     * @param namespaceURI eg: "http://ogr.keeber.namespace/test/"
+     * @param namespaceURI eg: "http://org.keeber.namespace/test/"
      * @param suggestedPrefix eg: tst
      * @throws XMPException
      */
