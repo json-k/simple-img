@@ -218,66 +218,68 @@ public class Image {
    */
   private void init(IIOMetadata metadata) {
     String xmpData = null;
-    if (type == Image.Type.JPG) {
-      IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(type.id);
-      IIOMetadataNode markerSequence = (IIOMetadataNode) root.getElementsByTagName("markerSequence").item(0);
-      NodeList nodes = markerSequence.getElementsByTagName("unknown");
-      for (int i = 0; i < nodes.getLength(); i++) {
-        if (((IIOMetadataNode) nodes.item(i)).getAttribute("MarkerTag").matches("APP1|225")) {
-          byte[] b = (byte[]) ((IIOMetadataNode) nodes.item(i)).getUserObject();
-          xmpData = new String(b, Constants.XMP_HEADER_SIZE, b.length - Constants.XMP_HEADER_SIZE);
-        }
-        if (((IIOMetadataNode) nodes.item(i)).getAttribute("MarkerTag").matches("APP2|226")) {
-          byte[] b = (byte[]) ((IIOMetadataNode) nodes.item(i)).getUserObject();
-          b = Arrays.copyOfRange(b, Constants.ICC_HEADER_SIZE, b.length);
-          profile = ICC_Profile.getInstance(b);
-        }
-      }
-    }
-    if (type == Image.Type.PNG) {
-      IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(type.id);
-      NodeList nodes = root.getElementsByTagName("iTXtEntry");
-      for (int i = 0; i < nodes.getLength(); i++) {
-        if (((IIOMetadataNode) nodes.item(i)).getAttribute("keyword").equals(Constants.PNG_KEYWORD)) {
-          xmpData = ((IIOMetadataNode) nodes.item(i)).getAttribute("text");
-        }
-      }
-      nodes = root.getElementsByTagName("pHYs");
-      if (nodes.getLength() == 1) {
-        IIOMetadataNode r = (IIOMetadataNode) nodes.item(0);
-        if (r.getAttribute("unitSpecifier").equals("meter")) {
-          res = Math.round(Integer.parseInt(r.getAttribute("pixelsPerUnitXAxis")) * 0.0254f);
-        }
-      }
-      if (res == 0) {
-        root = (IIOMetadataNode) metadata.getAsTree("javax_imageio_1.0");
-        nodes = root.getElementsByTagName("HorizontalPixelSize");
-        if (nodes.getLength() == 1) {
-          IIOMetadataNode r = (IIOMetadataNode) nodes.item(0);
-          res = (int) Math.round(25.4 * Float.parseFloat(r.getAttribute("value")));
-        }
-      }
-    }
-    if (type == Image.Type.TIF || type == Image.Type.JPG) {
-      try {
-        TIFFDirectory t = TIFFDirectory.createFromMetadata(metadata);
-        if (t.containsTIFFField(700)) {
-          xmpData = new String(t.getTIFFField(700).getAsBytes());
-        }
-        // Resolution
-        if (t.containsTIFFField(BaselineTIFFTagSet.TAG_X_RESOLUTION)) {
-          long[] r = t.getTIFFField(BaselineTIFFTagSet.TAG_X_RESOLUTION).getAsRational(0);
-          res = Math.floorDiv((int) r[0], (int) r[1]);
-          if (t.containsTIFFField(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT) && t.getTIFFField(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT).getAsChars()[0] == 3) {
-            res = Math.round(res * 2.54f);
+    if (metadata != null) {
+      if (type == Image.Type.JPG) {
+        IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(type.id);
+        IIOMetadataNode markerSequence = (IIOMetadataNode) root.getElementsByTagName("markerSequence").item(0);
+        NodeList nodes = markerSequence.getElementsByTagName("unknown");
+        for (int i = 0; i < nodes.getLength(); i++) {
+          if (((IIOMetadataNode) nodes.item(i)).getAttribute("MarkerTag").matches("APP1|225")) {
+            byte[] b = (byte[]) ((IIOMetadataNode) nodes.item(i)).getUserObject();
+            xmpData = new String(b, Constants.XMP_HEADER_SIZE, b.length - Constants.XMP_HEADER_SIZE);
+          }
+          if (((IIOMetadataNode) nodes.item(i)).getAttribute("MarkerTag").matches("APP2|226")) {
+            byte[] b = (byte[]) ((IIOMetadataNode) nodes.item(i)).getUserObject();
+            b = Arrays.copyOfRange(b, Constants.ICC_HEADER_SIZE, b.length);
+            profile = ICC_Profile.getInstance(b);
           }
         }
-        // ICC Profile
-        if (t.containsTIFFField(BaselineTIFFTagSet.TAG_ICC_PROFILE)) {
-          profile = ICC_Profile.getInstance(t.getTIFFField(BaselineTIFFTagSet.TAG_ICC_PROFILE).getAsBytes());
+      }
+      if (type == Image.Type.PNG) {
+        IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(type.id);
+        NodeList nodes = root.getElementsByTagName("iTXtEntry");
+        for (int i = 0; i < nodes.getLength(); i++) {
+          if (((IIOMetadataNode) nodes.item(i)).getAttribute("keyword").equals(Constants.PNG_KEYWORD)) {
+            xmpData = ((IIOMetadataNode) nodes.item(i)).getAttribute("text");
+          }
         }
-      } catch (IIOInvalidTreeException e) {
+        nodes = root.getElementsByTagName("pHYs");
+        if (nodes.getLength() == 1) {
+          IIOMetadataNode r = (IIOMetadataNode) nodes.item(0);
+          if (r.getAttribute("unitSpecifier").equals("meter")) {
+            res = Math.round(Integer.parseInt(r.getAttribute("pixelsPerUnitXAxis")) * 0.0254f);
+          }
+        }
+        if (res == 0) {
+          root = (IIOMetadataNode) metadata.getAsTree("javax_imageio_1.0");
+          nodes = root.getElementsByTagName("HorizontalPixelSize");
+          if (nodes.getLength() == 1) {
+            IIOMetadataNode r = (IIOMetadataNode) nodes.item(0);
+            res = (int) Math.round(25.4 * Float.parseFloat(r.getAttribute("value")));
+          }
+        }
+      }
+      if (type == Image.Type.TIF || type == Image.Type.JPG) {
+        try {
+          TIFFDirectory t = TIFFDirectory.createFromMetadata(metadata);
+          if (t.containsTIFFField(700)) {
+            xmpData = new String(t.getTIFFField(700).getAsBytes());
+          }
+          // Resolution
+          if (t.containsTIFFField(BaselineTIFFTagSet.TAG_X_RESOLUTION)) {
+            long[] r = t.getTIFFField(BaselineTIFFTagSet.TAG_X_RESOLUTION).getAsRational(0);
+            res = Math.floorDiv((int) r[0], (int) r[1]);
+            if (t.containsTIFFField(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT) && t.getTIFFField(BaselineTIFFTagSet.TAG_RESOLUTION_UNIT).getAsChars()[0] == 3) {
+              res = Math.round(res * 2.54f);
+            }
+          }
+          // ICC Profile
+          if (t.containsTIFFField(BaselineTIFFTagSet.TAG_ICC_PROFILE)) {
+            profile = ICC_Profile.getInstance(t.getTIFFField(BaselineTIFFTagSet.TAG_ICC_PROFILE).getAsBytes());
+          }
+        } catch (IIOInvalidTreeException e) {
 
+        }
       }
     }
     if (xmpData != null) {
@@ -537,11 +539,11 @@ public class Image {
       return new Image(reader.read(0), reader.getImageMetadata(0), type);
     }
 
-//    public static XMPMeta xmpOnly(InputStream is, Image.Type type) throws IOException {
-//      ImageReader reader = ImageIO.getImageReadersByFormatName(type.fm).next();
-//      reader.setInput(ImageIO.createImageInputStream(is), true, false);
-//      return new Image(null, reader.getImageMetadata(0), type).getXMP();
-//    }
+    // public static XMPMeta xmpOnly(InputStream is, Image.Type type) throws IOException {
+    // ImageReader reader = ImageIO.getImageReadersByFormatName(type.fm).next();
+    // reader.setInput(ImageIO.createImageInputStream(is), true, false);
+    // return new Image(null, reader.getImageMetadata(0), type).getXMP();
+    // }
 
   }
 
