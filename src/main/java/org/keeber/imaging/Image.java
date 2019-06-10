@@ -75,7 +75,7 @@ public class Image {
    * Creates a copy of this image that can be manipulated without changing the original.
    */
   public Image clone() {
-    return new Image(this.raster.getSubimage(0, 0, this.raster.getWidth(), this.raster.getHeight()), null, this.type).setXMP(xmp).setRes(this.res).setBackground(this.background);
+    return new Image(this.raster.getSubimage(0, 0, this.raster.getWidth(), this.raster.getHeight()), null, this.type).setProfile(profile).setXMP(xmp).setRes(this.res).setBackground(this.background);
   }
 
   /**
@@ -135,6 +135,8 @@ public class Image {
   public Image normalize(boolean removeAlpha) {
     BufferedImage tmp = new BufferedImage(raster.getWidth(), raster.getHeight(), removeAlpha || !raster.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = tmp.createGraphics();
+    g.setBackground(Constants.TRANSPARENT);
+    g.clearRect(0, 0, tmp.getWidth(), tmp.getHeight());
     g.drawImage(raster, 0, 0, removeAlpha || !raster.getColorModel().hasAlpha() ? background : Constants.TRANSPARENT, null);
     g.dispose();
     this.raster = tmp;
@@ -153,8 +155,11 @@ public class Image {
     g.setBackground(background);
     if (edits.flatten || tmp.getType() == BufferedImage.TYPE_INT_RGB) {
       g.clearRect(0, 0, tmp.getWidth(), tmp.getHeight());
+    } else {
+      g.setBackground(Constants.TRANSPARENT);
+      g.clearRect(0, 0, tmp.getWidth(), tmp.getHeight());
     }
-    g.drawImage(raster.getScaledInstance(edits.imageWidth, edits.imageHeight, java.awt.Image.SCALE_SMOOTH), edits.offsetX, edits.offsetY, edits.imageWidth, edits.imageHeight, null);
+    g.drawImage(raster.getScaledInstance(edits.imageWidth, edits.imageHeight, java.awt.Image.SCALE_SMOOTH), edits.offsetX, edits.offsetY, edits.imageWidth, edits.imageHeight, Constants.TRANSPARENT, null);
     g.dispose();
     this.raster = tmp;
     return this;
